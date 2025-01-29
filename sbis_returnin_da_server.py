@@ -21,6 +21,7 @@ import importlib
 import modules.api_info
 importlib.reload(modules.api_info)
 
+from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
 from sqlalchemy import create_engine
@@ -121,6 +122,7 @@ def send_message(var_link, var_doc_number, var_doc_data_main, var_doc_type, var_
 
         }
         parameters = {
+        "jsonrpc": "2.0",
         "jsonrpc": "2.0",
         "method": method,
         "params":params,
@@ -265,7 +267,7 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
 
         doc_assigned_manager.append(var_doc_assigned_manager)
         doc_department.append(var_doc_department)
-
+        
         # print('doc_append')
 
 
@@ -285,7 +287,11 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
                         var_inside_doc_item_price_to,
                         var_inside_doc_item_price_after,
                         var_inside_doc_item_full_item_price_to,
-                        var_inside_doc_item_full_item_price_after,):
+                        var_inside_doc_item_full_item_price_after,
+                        var_inside_doc_main_conn,
+                        var_inside_doc_main_id,
+                        var_inside_doc_main_number,
+                         ):
         
         inside_doc_author.append(var_inside_doc_author)
         inside_doc_type.append(var_inside_doc_type)
@@ -310,15 +316,19 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
         inside_doc_item_full_item_price_to.append(var_inside_doc_item_full_item_price_to)
         inside_doc_item_full_item_price_after.append(var_inside_doc_item_full_item_price_after)
 
+        inside_doc_main_conn.append(var_inside_doc_main_conn)
+        inside_doc_main_id.append(var_inside_doc_main_id)
+        inside_doc_main_number.append(var_inside_doc_main_number)
+
         # print('inside_doc_append')
         
 
 
-    def def_ukd_s_fdis(xml_a, var_inside_doc_author, var_inside_doc_type):
+    def def_ukd_s_fdis(xml_a, var_inside_doc_author, var_inside_doc_type, var_inside_doc_main_conn, var_inside_doc_main_id, var_inside_doc_main_number):
             
             # _________________________________________________________________________________________________________________________________________________            
 
-            def def_ukd_s_fdis_set_variable(var_inside_doc_author, var_inside_doc_type):
+            def def_ukd_s_fdis_set_variable(var_inside_doc_author, var_inside_doc_type, var_inside_doc_main_conn, var_inside_doc_main_id, var_inside_doc_main_number):
                 
                 # _______________________________________
                 # DICT
@@ -423,6 +433,9 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
                             var_inside_doc_item_price_after,
                             var_inside_doc_item_full_item_price_to,
                             var_inside_doc_item_full_item_price_after,
+                            var_inside_doc_main_conn,
+                            var_inside_doc_main_id,
+                            var_inside_doc_main_number,
                             )
 
                     # print('_______________________')
@@ -533,6 +546,9 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
                             var_inside_doc_item_price_after,
                             var_inside_doc_item_full_item_price_to,
                             var_inside_doc_item_full_item_price_after,
+                            var_inside_doc_main_conn,
+                            var_inside_doc_main_id,
+                            var_inside_doc_main_number,
                             )
                         # print('_______________________')
                         # print('_______________________')
@@ -544,7 +560,8 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
         
             # _________________________________________________________________________________________________________________________________________________            
 
-            def_ukd_s_fdis_set_variable(var_inside_doc_author, var_inside_doc_type)
+            def_ukd_s_fdis_set_variable(var_inside_doc_author, var_inside_doc_type, var_inside_doc_main_conn, var_inside_doc_main_id, var_inside_doc_main_number)
+         
             
             
     url = url_sbis
@@ -592,6 +609,7 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
 
     doc_assigned_manager = []
     doc_department = []
+    
 
     inside_doc_author = []
     inside_doc_type = []
@@ -613,6 +631,10 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
     inside_doc_item_price_after = []
     inside_doc_item_full_item_price_to = []
     inside_doc_item_full_item_price_after = []
+
+    inside_doc_main_conn = []
+    inside_doc_main_id = []
+    inside_doc_main_number = []
     
 
     # ___________________________________________________________________________________________
@@ -738,6 +760,7 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
                     var_doc_department = i["Подразделение"]["Название"]
                 except:
                     var_doc_department = np.nan    
+
     # ___________________________________________________________________________________________
 
     # ___________________________________________________________________________________________
@@ -783,6 +806,51 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
                     var_inside_doc_author = " ".join(author_list).strip()
                 except:
                     var_inside_doc_author = np.nan
+
+                # print(str_to_dict_points)
+
+
+                var_inside_doc_main_conn = np.nan
+                var_inside_doc_main_id = np.nan
+                var_inside_doc_main_number = np.nan
+
+                try:
+                    for z in str_to_dict_points["result"]["ДокументОснование"]:
+                    
+                        try:
+                            if z["ВидСвязи"].lower() == 'обычная связь':
+                                var_inside_doc_main_conn = z["ВидСвязи"]
+                                var_inside_doc_main_id = z["Документ"]["Идентификатор"]
+                                var_inside_doc_main_number = z["Документ"]["Номер"]
+                        except:
+                            pass
+                except:
+                    pass
+
+                try:
+                    str_to_dict_points["result"]["ДокументСледствие"]
+
+                    for z in str_to_dict_points["result"]["ДокументСледствие"]:
+                        try:
+                            if z["ВидСвязи"].lower() == 'обычная связь':
+                                var_inside_doc_main_conn = z["ВидСвязи"]
+                                var_inside_doc_main_id = z["Документ"]["Идентификатор"]
+                                var_inside_doc_main_number = z["Документ"]["Номер"]
+                        except:
+                            pass
+                except:
+                    pass
+
+        
+                # var_inside_doc_main_conn = str_to_dict_points["result"]["ДокументОснование"][0]["ВидСвязи"]
+                # var_inside_doc_main_id = str_to_dict_points["result"]["ДокументОснование"][0]["Документ"]["Идентификатор"]
+                # var_inside_doc_main_number = str_to_dict_points["result"]["ДокументОснование"][0]["Документ"]["Номер"]
+
+
+                # print(var_inside_doc_main_conn)
+                # print(var_inside_doc_main_id)
+                # print(var_inside_doc_main_number)
+
                 
     # ___________________________________________________________________________________________
            
@@ -846,6 +914,7 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
                         print("автор:", " ".join(author_list).strip())
                     except:
                         print("автор:", np.nan)
+
                     
                 # common_part_print()
 
@@ -909,7 +978,7 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
                             var_inside_doc_type = "укдксчфдис"         
                             # _______________________________________________________________________________________________________________________________
                         
-                            def_ukd_s_fdis(xml_a, var_inside_doc_author, var_inside_doc_type)
+                            def_ukd_s_fdis(xml_a, var_inside_doc_author, var_inside_doc_type, var_inside_doc_main_conn, var_inside_doc_main_id, var_inside_doc_main_number)
                         
                             # except:
                             # print(var_link, var_doc_number, var_doc_data_main, var_doc_type, var_doc_counterparty_inn)                                
@@ -934,7 +1003,7 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
                             var_inside_doc_type = "укддис"         
                             # _______________________________________________________________________________________________________________________________
                         
-                            def_ukd_s_fdis(xml_a, var_inside_doc_author, var_inside_doc_type)
+                            def_ukd_s_fdis(xml_a, var_inside_doc_author, var_inside_doc_type, var_inside_doc_main_conn, var_inside_doc_main_id, var_inside_doc_main_number)
                             
                             # except:
                             # print(var_link, var_doc_number, var_doc_data_main, var_doc_type, var_doc_counterparty_inn)                                
@@ -997,6 +1066,10 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
     inside_doc_item_price_after,
     inside_doc_item_full_item_price_to,
     inside_doc_item_full_item_price_after,
+
+    inside_doc_main_conn,
+    inside_doc_main_id,
+    inside_doc_main_number,
     ]
 
     lst_append_name = [
@@ -1043,8 +1116,13 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
         "inside_doc_item_price_to",
         "inside_doc_item_price_after",
         "inside_doc_item_full_item_price_to",
-        "inside_doc_item_full_item_price_after"
+        "inside_doc_item_full_item_price_after",
         # 28
+        
+        "inside_doc_main_conn",
+        "inside_doc_main_id",
+        "inside_doc_main_number",
+    
     ]    
    
     df = pd.DataFrame(columns=lst_append_name, data=list(zip(
@@ -1066,7 +1144,7 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
 
     doc_assigned_manager,
     doc_department,
-    # 12
+    # 12      
 
     inside_doc_author,
     inside_doc_type,
@@ -1093,6 +1171,11 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
     inside_doc_item_full_item_price_to,
     inside_doc_item_full_item_price_after, 
     # 28
+
+
+    inside_doc_main_conn,
+    inside_doc_main_id,
+    inside_doc_main_number,
     )))
         
 
@@ -1115,5 +1198,4 @@ def sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unl
     # __________________________________________
     # __________________________________________
             
-sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unloading) 
-
+# sbis_real_processing_returnin(date_from_returnin, date_to_returnin, name_unloading) 
